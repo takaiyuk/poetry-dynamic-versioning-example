@@ -26,9 +26,24 @@ jobs:
     - name: Create draft release
       run: |
         SEMANTIC_VERSION=$(poetry version | cut -d ' ' -f 2)
-        gh release create "prefix-v$SEMANTIC_VERSION" \
-          --draft \
-          --title "prefix-v$SEMANTIC_VERSION" \
-          --generate-notes
+        TAG="prefix-v$SEMANTIC_VERSION"
+        DRAFT_RELEASE_ID=$(gh api -H "Accept: application/vnd.github+json" /repos/takaiyuk/poetry-dynamic-versioning-example/releases | jq -rjc '.[] | select(.draft==true) | .id')
+        if [ -z "${DRAFT_RELEASE_ID}" ]; then
+          echo "Creating a new draft release..."
+          gh release create $TAG --draft --generate-notes
+        else
+          echo "Updating the existing draft release..."
+          LATEST_TAG=$(git describe --abbrev=0 --tags)
+          BODY="**Full Changelog**: https://github.com/$GITHUB_REPOSITORY/compare/$LATEST_TAG...$TAG"
+          gh api \
+            --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            /repos/$GITHUB_REPOSITORY/releases/$DRAFT_RELEASE_ID \
+            -f tag_name=$TAG \
+            -f target_commitish='main' \
+            -f name=$TAG \
+            -f body="$BODY" \
+            -F draft=true
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
