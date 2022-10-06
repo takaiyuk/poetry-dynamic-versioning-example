@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "poetry-dynamic-versioning-example"
+version = "0.0.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "poetry_dynamic_versioning_example"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+pattern = "^prefix-v(?P<base>\\d+\\.\\d+\\.\\d+)?"
+format = "{base}"
+bump = true

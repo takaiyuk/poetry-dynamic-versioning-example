@@ -1,0 +1,32 @@
+name: Create GitHub release tag
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install poetry and poetry-dynamic-versioning
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        export PATH=$HOME/.local/bin:$PATH
+        poetry self add "poetry-dynamic-versioning[plugin]"
+    - name: Create draft release
+      run: |
+        SEMANTIC_VERSION=$(poetry version | cut -d ' ' -f 2)
+        gh release create "prefix-v$SEMANTIC_VERSION" \
+          --draft \
+          --title "prefix-v$SEMANTIC_VERSION" \
+          --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
